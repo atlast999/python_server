@@ -1,7 +1,6 @@
 from django.http import JsonResponse
 from api.models import Attendee
 from api.serializers import AttendeeSerializer
-from rest_framework.renderers import JSONRenderer
 from rest_framework.decorators import api_view
 # for face recognition
 import sys
@@ -25,9 +24,8 @@ def recognite(request):
 def request(request):
     if request.method == 'GET':
         attendees = Attendee.objects.all()
-        print(attendees)
-        serializer = AttendeeSerializer(attendees)
-        return JsonResponse(serializer.data)
+        serializer = AttendeeSerializer(attendees, many=True)
+        return JsonResponse(serializer.data, safe=False)
     elif request.method == 'POST':
         attendee = Attendee(name="Hoan", attendId= "123")
         attendee.save()
