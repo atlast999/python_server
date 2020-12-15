@@ -2,32 +2,49 @@ from django.http import JsonResponse
 from api.models import Attendee
 from api.serializers import AttendeeSerializer
 from rest_framework.decorators import api_view
+import json
+from django.core.files.storage import default_storage
 # for face recognition
 import sys
 import face_recognition
+import os
+from data import facedata
 
-@api_view(['GET', 'POST'])
+@api_view(['POST'])
 def recognite(request):
     try: 
-        minImage = face_recognition.load_image_file("min.jpg")
-        minEncoded = face_recognition.face_encodings(minImage)[0]
         image = request.FILES['file']
-        imageEncoded = face_recognition.face_encodings(face_recognition.load_image_file(image))[0]
-        knownFace = [minEncoded]
-        res = face_recognition.compare_faces(knownFace, imageEncoded)
-        return JsonResponse({'res': f'{res[0]}'})
+        res = facedata.isFaceRecognited(image)
+        if res == -2:
+            return JsonResponse({'error': f'check log for more'})
+        if res == -1:
+            return JsonResponse({'res': f'{res}'})
+        serializer = AttendeeSerializer(res)
+        return JsonResponse(serializer.data, safe=False)
     except :
         print(sys.exc_info()[0])
         return JsonResponse({'error': f'{sys.exc_info()[0]}'})
 
 @api_view(['GET', 'POST'])
-def request(request):
+def request(request, slug):
     if request.method == 'GET':
-        attendees = Attendee.objects.all()
-        serializer = AttendeeSerializer(attendees, many=True)
-        return JsonResponse(serializer.data, safe=False)
-    elif request.method == 'POST':
-        attendee = Attendee(name="Hoan", attendId= "123")
-        attendee.save()
-        serializer = AttendeeSerializer(attendee)
-        return JsonResponse(serializer.data)
+        try:
+            att = Attendee.objects.filter(id = int(slug))
+            filePath = os.path.join('images', att[0].image)
+            default_storage.delete(filePath)
+            att.delete()
+            return JsonResponse({'res': 'you delete: {}'.format(att.name)})
+        except:
+            return JsonResponse({'error': f'{sys.exc_info()[0]}'})
+
+@api_view(['POST'])
+def upload(request):
+    try:
+        attendeeName = request.data['name']
+        attendeeId = request.data['id']
+        uploadedFile = request.FILES['file']
+        savedName = facedata.saveData(attendeeName, attendeeId, uploadedFile)
+        return JsonResponse({'code': 'add new person: {}'.format(savedName)})
+    except:
+        print('err: ', sys.exc_info()[0])
+        return JsonResponse({'code': 'error when handle uploaded photo nah'})    
