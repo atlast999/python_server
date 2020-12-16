@@ -12,8 +12,10 @@ needUpdate = False
 def updateListEncodedFace():
     try: 
         print('updating list')
+        global needUpdate
         global allAttendees
         global encodedImages
+        needUpdate = False
         allAttendees = []
         allAttendees = Attendee.objects.all()
         encodedImages = []
