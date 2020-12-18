@@ -3,6 +3,7 @@ from api import views
 
 urlpatterns = [
     path('recognite/', views.recognite),
-    path('delete/<slug:slug>/', views.request, name='unique_slug'),
+    path('delete/', views.delete),
     path('upload/', views.upload),
+    path('all_users/', views.allUsers)
 ]

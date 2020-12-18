@@ -25,15 +25,16 @@ def recognite(request):
         print(sys.exc_info()[0])
         return JsonResponse({'error': f'{sys.exc_info()[0]}'})
 
-@api_view(['GET', 'POST'])
-def request(request, slug):
-    if request.method == 'GET':
+@api_view(['POST'])
+def delete(request):
         try:
-            att = Attendee.objects.filter(id = int(slug))
+            att = Attendee.objects.filter(attendId = request.data['id'])
             filePath = os.path.join('images', att[0].image)
             default_storage.delete(filePath)
             att.delete()
-            return JsonResponse({'res': 'you delete: {}'.format(att.name)})
+            attendees = Attendee.objects.all()
+            serializer = AttendeeSerializer(attendees, many = True)
+            return JsonResponse(serializer.data, safe = False)
         except:
             return JsonResponse({'error': f'{sys.exc_info()[0]}'})
 
@@ -48,3 +49,13 @@ def upload(request):
     except:
         print('err: ', sys.exc_info()[0])
         return JsonResponse({'code': 'error when handle uploaded photo nah'})    
+
+@api_view(['GET'])
+def allUsers(request):
+    try:
+        attendees = Attendee.objects.all()
+        serializer = AttendeeSerializer(attendees, many = True)
+        return JsonResponse(serializer.data, safe = False)
+    except:
+        print('err: ', sys.exc_info()[0])
+        return JsonResponse({'code': 'error when get all users'})    
