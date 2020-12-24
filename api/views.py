@@ -32,6 +32,7 @@ def delete(request):
             filePath = os.path.join('images', att[0].image)
             default_storage.delete(filePath)
             att.delete()
+            facedata.notifyListChanged()
             attendees = Attendee.objects.all()
             serializer = AttendeeSerializer(attendees, many = True)
             return JsonResponse(serializer.data, safe = False)

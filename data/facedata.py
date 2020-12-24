@@ -58,3 +58,6 @@ def saveData(name, id, file):
     except:
         print('err: ', sys.exc_info()[0])
     
+def notifyListChanged():
+    global needUpdate
+    needUpdate = True
